@@ -82,6 +82,10 @@ fun AppNavigation() {
                     isSectionComplete = false
                     currentSection = 1
                 },
+                onReplaySection = {
+                    webViewRef?.evaluateJavascript("window.replaySection();", null)
+                    isSectionComplete = false
+                },
                 onWebViewCreated = { webView ->
                     webViewRef = webView
                 },

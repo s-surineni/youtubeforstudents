@@ -24,6 +24,7 @@ fun YouTubePlayerScreen(
     onSectionComplete: () -> Unit,
     onPlayNextSection: () -> Unit,
     onRestartVideo: () -> Unit,
+    onReplaySection: () -> Unit,
     onWebViewCreated: (WebView) -> Unit,
     onSettingsClick: () -> Unit,
     onVideoChange: () -> Unit
@@ -222,7 +223,15 @@ fun YouTubePlayerScreen(
                                 modifier = Modifier.weight(1f),
                                 contentPadding = androidx.compose.foundation.layout.PaddingValues(vertical = 8.dp)
                             ) {
-                                Text("Next Section", fontSize = 12.sp)
+                                Text("Next", fontSize = 12.sp)
+                            }
+                            
+                            OutlinedButton(
+                                onClick = onReplaySection,
+                                modifier = Modifier.weight(1f),
+                                contentPadding = androidx.compose.foundation.layout.PaddingValues(vertical = 8.dp)
+                            ) {
+                                Text("Replay", fontSize = 12.sp)
                             }
                             
                             OutlinedButton(

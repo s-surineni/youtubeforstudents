@@ -172,9 +172,20 @@ fun YouTubePlayer(
                         }
                     }
                     
+                    function replaySection() {
+                        console.log('Replaying current section from', sectionStartTime);
+                        if (player) {
+                            isSectionMode = true;
+                            isPaused = false;
+                            player.seekTo(sectionStartTime);
+                            player.playVideo();
+                        }
+                    }
+                    
                     // Expose functions to Android
                     window.playNextSection = playNextSection;
                     window.resetSectionMode = resetSectionMode;
+                    window.replaySection = replaySection;
                 </script>
                 """
             } else ""

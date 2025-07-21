@@ -24,12 +24,18 @@
 5. Two buttons should appear: "Play Next Section" and "Restart"
 
 ### 4. Test Next Section
-1. Tap "Play Next Section"
+1. Tap "Next Section"
 2. The video should resume from where it left off
 3. It should play for another 10 seconds and pause again
 4. The section number should increment to 2
 
-### 5. Test Restart
+### 5. Test Replay Section
+1. After a section completes, tap "Replay"
+2. The video should go back to the start of the current section
+3. It should play the same section again and pause after the duration
+4. The section number should remain the same
+
+### 6. Test Restart
 1. Tap "Restart"
 2. The video should go back to the beginning
 3. The section number should reset to 1
@@ -91,8 +97,9 @@ Check the Android Logcat for messages starting with "YouTubePlayer: Console:" to
 ### When Section Mode is Enabled:
 - Video automatically pauses after specified duration
 - Section status card appears with current section info
-- "Play Next Section" and "Restart" buttons appear after pause
+- "Next Section", "Replay", and "Restart" buttons appear after pause
 - Section number increments with each new section
+- Replay button allows reviewing the current section from its start
 
 ### When Section Mode is Disabled:
 - Video plays normally without interruption
