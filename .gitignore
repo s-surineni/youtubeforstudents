@@ -7,9 +7,17 @@
 /.idea/workspace.xml
 /.idea/navEditor.xml
 /.idea/assetWizardSettings.xml
+.cursor
 .DS_Store
 /build
 /captures
 .externalNativeBuild
 .cxx
 local.properties
+.idea
+
+# ktlint
+.ktlint/
+ktlintMainSourceSetCheck/
+ktlintTestSourceSetCheck/
+ktlintAndroidTestSourceSetCheck/
