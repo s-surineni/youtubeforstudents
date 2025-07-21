@@ -9,21 +9,29 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-
-data class VideoItem(
-    val id: String,
-    val title: String,
-    val description: String
-)
+import android.webkit.WebView
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Settings
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun YouTubePlayerScreen() {
+fun YouTubePlayerScreen(
+    sectionDurationSeconds: Int?,
+    showSectionControls: Boolean,
+    isSectionComplete: Boolean,
+    currentSection: Int,
+    webViewRef: WebView?,
+    onSectionComplete: () -> Unit,
+    onPlayNextSection: () -> Unit,
+    onRestartVideo: () -> Unit,
+    onWebViewCreated: (WebView) -> Unit,
+    onSettingsClick: () -> Unit,
+    onVideoChange: () -> Unit
+) {
     var currentVideoId by remember { mutableStateOf("dQw4w9WgXcQ") } // Default video
     var videoTitle by remember { mutableStateOf("Rick Astley - Never Gonna Give You Up") }
     var searchQuery by remember { mutableStateOf("") }
     var customVideoId by remember { mutableStateOf("") }
-    var showCustomInput by remember { mutableStateOf(false) }
     
     val sampleVideos =
         remember {
@@ -47,6 +55,26 @@ fun YouTubePlayerScreen() {
                     id = "ZZ5LpwO-An4",
                     title = "Ylvis - The Fox (What Does The Fox Say?)",
                     description = "The catchy fox song"
+                ),
+                VideoItem(
+                    id = "kJQP7q19f0",
+                    title = "Luis Fonsi - Despacito ft. Daddy Yankee",
+                    description = "The most viewed video on YouTube"
+                ),
+                VideoItem(
+                    id = "ZZ5LpwO-An4",
+                    title = "Ylvis - The Fox (What Does The Fox Say?)",
+                    description = "The catchy fox song"
+                ),
+                VideoItem(
+                    id = "dQw4w9WgXcQ",
+                    title = "Rick Astley - Never Gonna Give You Up",
+                    description = "The classic Rick Roll video"
+                ),
+                VideoItem(
+                    id = "9bZkp7q19f0",
+                    title = "PSY - GANGNAM STYLE",
+                    description = "The viral K-pop sensation"
                 )
             )
         }
@@ -63,25 +91,56 @@ fun YouTubePlayerScreen() {
             }
         }
     
+    // Helper function to convert seconds to readable duration
+    fun secondsToReadableDuration(seconds: Int): String {
+        return when {
+            seconds < 60 -> "$seconds second${if (seconds != 1) "s" else ""}"
+            seconds < 3600 -> {
+                val minutes = seconds / 60
+                "$minutes minute${if (minutes != 1) "s" else ""}"
+            }
+            else -> {
+                val hours = seconds / 3600
+                val minutes = (seconds % 3600) / 60
+                "$hours hour${if (hours != 1) "s" else ""} $minutes minute${if (minutes != 1) "s" else ""}"
+            }
+        }
+    }
+    
     Column(
         modifier =
             Modifier
                 .fillMaxSize()
                 .padding(16.dp)
     ) {
-        // App Title
-        Text(
-            text = "YouTube for Students",
-            fontSize = 24.sp,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.fillMaxWidth()
-        )
+        // Header with Settings Button
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(
+                text = "YouTube for Students",
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold
+            )
+            
+            IconButton(onClick = onSettingsClick) {
+                Icon(
+                    imageVector = Icons.Default.Settings,
+                    contentDescription = "Settings"
+                )
+            }
+        }
 
         Spacer(modifier = Modifier.height(16.dp))
 
         // Video Player
         YouTubePlayer(
             videoId = currentVideoId,
+            sectionDurationSeconds = sectionDurationSeconds,
+            onSectionComplete = onSectionComplete,
+            onPlayNextSection = onPlayNextSection,
+            onWebViewCreated = onWebViewCreated,
             modifier = Modifier.fillMaxWidth()
         )
         
@@ -94,6 +153,90 @@ fun YouTubePlayerScreen() {
             fontWeight = FontWeight.Bold,
             modifier = Modifier.fillMaxWidth()
         )
+        
+        // Section Status (only show if section mode is enabled)
+        if (showSectionControls && sectionDurationSeconds != null) {
+            Spacer(modifier = Modifier.height(12.dp))
+            
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(
+                    containerColor = if (isSectionComplete) 
+                        MaterialTheme.colorScheme.primaryContainer 
+                    else 
+                        MaterialTheme.colorScheme.surfaceVariant
+                )
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(12.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+                    ) {
+                        Row(
+                            verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Text(
+                                text = "Section $currentSection",
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Medium
+                            )
+                            
+                            Text(
+                                text = "•",
+                                fontSize = 14.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            
+                            Text(
+                                text = secondsToReadableDuration(sectionDurationSeconds!!),
+                                fontSize = 14.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        
+                        if (isSectionComplete) {
+                            Text(
+                                text = "Complete",
+                                fontSize = 12.sp,
+                                color = MaterialTheme.colorScheme.primary,
+                                fontWeight = FontWeight.Medium
+                            )
+                        }
+                    }
+                    
+                    if (isSectionComplete) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Button(
+                                onClick = onPlayNextSection,
+                                modifier = Modifier.weight(1f),
+                                contentPadding = androidx.compose.foundation.layout.PaddingValues(vertical = 8.dp)
+                            ) {
+                                Text("Next Section", fontSize = 12.sp)
+                            }
+                            
+                            OutlinedButton(
+                                onClick = onRestartVideo,
+                                modifier = Modifier.weight(1f),
+                                contentPadding = androidx.compose.foundation.layout.PaddingValues(vertical = 8.dp)
+                            ) {
+                                Text("Restart", fontSize = 12.sp)
+                            }
+                        }
+                    }
+                }
+            }
+        }
         
         Spacer(modifier = Modifier.height(16.dp))
         
@@ -117,6 +260,7 @@ fun YouTubePlayerScreen() {
                         currentVideoId = customVideoId
                         videoTitle = "Custom Video"
                         customVideoId = ""
+                        onVideoChange()
                     }
                 }
             ) {
@@ -157,6 +301,7 @@ fun YouTubePlayerScreen() {
                     onClick = {
                         currentVideoId = video.id
                         videoTitle = video.title
+                        onVideoChange()
                     }
                 ) {
                     Column(

@@ -1,170 +1,162 @@
-# YouTube for Students - Learning Focused Video Player
+# YouTube for Students
 
-A specialized YouTube player Android app designed for students and learners who want to consume complex topics and long educational videos more effectively.
+An Android app that allows students to watch YouTube videos in manageable sections for focused learning sessions.
 
-## Purpose
+## Features
 
-Traditional YouTube players can be overwhelming when learning complex subjects. This app helps you break down long videos into manageable, digestible sections, making it easier to:
-- **Rewind and replay** specific parts without losing your place
-- **Focus on one concept** at a time
-- **Avoid information overload** from long videos
-- **Build better learning habits** through structured video consumption
+- **YouTube Video Player**: Embedded YouTube video player with full functionality
+- **Section-Based Playback**: Play videos in customizable time sections
+- **Manual Section Control**: User controls when to play the next section
+- **Custom Video Input**: Enter any YouTube video ID to play custom content
+- **Simple Duration Input**: Number field with radio buttons for seconds/minutes
+- **Dedicated Settings Screen**: Clean separation of controls and content
 
-## Key Features
+## App Structure
 
-### 🎯 Sectioned Video Playback
-- **Configurable Duration**: Set how long each video section should be (e.g., 2, 5, 10, or 15 minutes)
+### Main Screen
+- **Video Player**: Large, prominent video player
+- **Video Library**: Extensive list of educational videos
+- **Search Functionality**: Find videos quickly
+- **Custom Video Input**: Play any YouTube video by ID
+- **Section Status**: Shows current section progress (when enabled)
+- **Settings Button**: Access section mode configuration
 
-### 📚 Learning-Focused Design
-- **Minimal Distractions**: Clean interface focused on content consumption
+### Settings Screen
+- **Section Mode Configuration**: Enable/disable and configure section duration
+- **Duration Controls**: Number input with seconds/minutes radio buttons
+- **How It Works Guide**: Step-by-step instructions
+- **Learning Tips**: Best practices for effective learning
 
-### 🎨 User Experience
-- **Responsive Design**: Works seamlessly on phones and tablets
-- **Material Design 3**: Modern, accessible interface
-- **Offline Capability**: Works with downloaded content (future feature)
+## Section-Based Learning Feature
 
-## How to Use
+The app now includes a powerful section-based learning system that allows users to:
 
-### 1. Configure Section Duration
-- Open the app settings
-- Choose your preferred section duration (2, 5, 10, or 15 minutes)
-- This determines how long each video segment will play
+1. **Set Section Duration**: Specify how long each section should be using a number and time unit
+2. **Controlled Playback**: Video automatically pauses after each section
+3. **Manual Progression**: User must press "Play Next Section" to continue
+4. **Section Tracking**: Shows current section number and status
+5. **Restart Capability**: Restart the video from the beginning at any time
 
-### 2. Play Videos in Sections
-1. **Select a Video**: Choose from pre-loaded educational content or add your own
-2. **Start Sectioned Playback**: Tap the "Play Section" button
-3. **Watch Current Section**: The video plays for your configured duration
-4. **Advance to Next Section**: Tap "Next Section" to continue
-5. **Repeat**: Continue until you've watched the entire video
+### How to Use Section Mode
 
-### 3. Add Custom Educational Videos
-1. Find a YouTube video ID (the part after `v=` in YouTube URLs)
-2. Paste it in the "YouTube Video ID" field
-3. Click "Add Video" to include it in your learning library
+1. Tap the **Settings** button (gear icon) in the top-right corner
+2. Toggle "Enable Section Mode" to activate the feature
+3. Enter a number in the "Duration" field
+4. Select "Seconds" or "Minutes" using the radio buttons
+5. Return to the main screen and play any video
+6. Video automatically pauses after the specified duration
+7. Press "Play Next Section" to continue to the next segment
+8. Use the "Restart" button to start over from the beginning
 
-## Getting YouTube Video IDs
+### Input Controls
 
-To get a YouTube video ID:
-1. Go to any YouTube video
-2. Copy the URL (e.g., `https://www.youtube.com/watch?v=dQw4w9WgXcQ`)
-3. The video ID is the part after `v=` (in this case: `dQw4w9WgXcQ`)
+- **Number Field**: Enter any positive number (e.g., 30, 2, 5)
+- **Radio Buttons**: Choose between "Seconds" or "Minutes"
+- **Real-time Preview**: See the calculated duration as you type
+- **Input Validation**: Only allows valid numbers
+
+### Example Inputs
+
+- **30 seconds**: Enter "30" and select "Seconds"
+- **2 minutes**: Enter "2" and select "Minutes"
+- **5 minutes**: Enter "5" and select "Minutes"
+- **45 seconds**: Enter "45" and select "Seconds"
+
+### Example Use Cases
+
+- **Focused Learning**: Set sections to "2 minutes" for concentrated study periods
+- **Review Sessions**: Use "30 seconds" sections for quick concept reviews
+- **Long Videos**: Break down hour-long lectures into "10 minutes" sections
+- **Active Learning**: Manual progression encourages engagement and reflection
+
+## Building the Project
+
+### Prerequisites
+
+- Android Studio
+- Android SDK
+- Java Development Kit (JDK)
+
+### Build Commands
+
+```bash
+# Using the provided build script (recommended)
+./build.sh
+
+# Or manually with correct JAVA_HOME
+export JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home"
+./gradlew assembleDebug
+```
+
+### Running the App
+
+1. Build the project using the commands above
+2. Install the APK on an Android device or emulator
+3. The app will be available as "YouTube for Students"
+
+## Technical Implementation
+
+### Navigation Architecture
+
+- **Single Activity**: MainActivity manages navigation between screens
+- **State Management**: Shared state between main and settings screens
+- **Composable Navigation**: Screen switching using Compose state
+- **Back Navigation**: Settings screen includes back button
+
+### YouTube Player Integration
+
+The app uses a WebView-based YouTube player with the YouTube IFrame API for:
+- Section-based playback control
+- JavaScript-based time monitoring
+- Automatic pause functionality
+- Manual section progression
+
+### Section Control Logic
+
+- **Number Validation**: Ensures only positive numbers are accepted
+- **Time Unit Conversion**: Converts seconds/minutes to total seconds
+- **Real-time Monitoring**: JavaScript checks video progress every second
+- **Automatic Pause**: Stops playback when section duration is reached
+- **Section Tracking**: Maintains current section number and completion status
+- **JavaScript Communication**: Android and WebView communicate via JavaScript interface
+
+### UI Components
+
+- **Main Screen**: Video player, library, search, and section status
+- **Settings Screen**: Configuration controls, help, and tips
+- **Section Toggle**: Switch to enable/disable section mode
+- **Number Input Field**: Text field for section duration (numbers only)
+- **Radio Buttons**: Seconds/Minutes selection
+- **Section Status Card**: Shows current section and completion status
+- **Control Buttons**: "Play Next Section" and "Restart" buttons
+- **Section Counter**: Tracks current section number
+- **Duration Preview**: Shows calculated section duration
+
+## Sample Videos
+
+The app includes several educational videos:
+- Rick Astley - Never Gonna Give You Up
+- PSY - GANGNAM STYLE
+- Luis Fonsi - Despacito ft. Daddy Yankee
+- Ylvis - The Fox (What Does The Fox Say?)
 
 ## Learning Benefits
 
-- **Better Retention**: Shorter sections help you absorb information more effectively
-- **Reduced Cognitive Load**: Focus on one concept at a time
-- **Active Learning**: Manual advancement encourages engagement
+- **Better Focus**: Shorter sections help maintain attention
+- **Active Engagement**: Manual progression encourages thinking
 - **Flexible Pacing**: Set your own learning rhythm
-- **Review-Friendly**: Easy to replay sections you need to review
+- **Reduced Overwhelm**: Break down long content into digestible pieces
+- **Review-Friendly**: Easy to replay sections that need more attention
+- **Simple Input**: Easy-to-use number and radio button interface
+- **Clean Interface**: Separated concerns for better user experience
 
-## Technical Details
+## Future Enhancements
 
-- Built with **Jetpack Compose** for modern, responsive UI
-- Uses **WebView** to embed YouTube's iframe player
-- **Material Design 3** for consistent, accessible theming
-- **Kotlin** for clean, maintainable Android development
-- **Sectioned Playback Engine** for controlled video consumption
-
-## Requirements
-
-- Android API level 24+ (Android 7.0+)
-- Internet connection for video playback
-- YouTube video content
-
-## Building the App
-
-1. Clone the repository
-2. Open in Android Studio
-3. Sync Gradle files
-4. Build and run on device or emulator
-
-## Kotlin Code Quality
-
-This project uses **ktlint** to maintain consistent Kotlin code style and quality.
-
-### Prerequisites
-- Java 17 (required for Android Gradle Plugin)
-- Gradle 8.13+
-
-### Available Commands
-
-#### Using Gradle directly:
-```bash
-# Check code style without making changes
-./gradlew ktlintCheck
-
-# Format code to match style rules
-./gradlew ktlintFormat
-```
-
-#### Using the convenience script:
-```bash
-# Check code style without making changes
-./lint.sh check
-
-# Format code to match style rules
-./lint.sh format
-
-# Check and format if needed
-./lint.sh apply
-```
-
-### Configuration
-
-The project includes:
-- **`.editorconfig`**: Defines code style rules for ktlint
-- **`app/build.gradle.kts`**: ktlint plugin configuration
-- **`lint.sh`**: Convenience script for running ktlint commands
-
-### Code Style Rules
-
-The project follows the official Kotlin coding style guide with some customizations:
-- 4-space indentation
-- 120 character line length
-- Official Kotlin code style (`ktlint_official`)
-- Import ordering and formatting
-- Consistent spacing and formatting
-
-### IDE Integration
-
-For the best development experience:
-1. Install the ktlint plugin in your IDE
-2. Enable "Format on Save" with ktlint
-3. Use the provided `.editorconfig` file for consistent formatting
-
-## Permissions
-
-The app requires:
-- `INTERNET`: To load YouTube videos
-- `ACCESS_NETWORK_STATE`: To check network connectivity
-
-## Sample Educational Content
-
-The app includes sample videos covering various subjects:
-- Science and Technology
-- Mathematics and Engineering
-- Language Learning
-- History and Philosophy
-- Programming and Computer Science
-
-## Future Features
-
-- **Bookmarking**: Save important sections for later review
-- **Notes Integration**: Add personal notes to video sections
-- **Playlist Support**: Create learning playlists
-- **Offline Downloads**: Download videos for offline learning
-- **Progress Sync**: Sync learning progress across devices
-- **Learning Analytics**: Track your learning patterns and progress
-
-## Contributing
-
-This app is designed for students and learners. If you have ideas for features that would help with learning complex topics, please contribute!
-
-**Before contributing, please ensure your code passes ktlint checks:**
-```bash
-./lint.sh apply
-```
-
----
-
-**Transform your YouTube learning experience with structured, manageable video sections. Perfect for students, professionals, and anyone who wants to learn more effectively from long-form content.** 
+- Save section duration presets for different learning scenarios
+- Multiple video playlists with section controls
+- Progress tracking across sessions
+- Integration with learning management systems
+- Offline section downloads
+- Section notes and bookmarks
+- Additional time units (hours)
+- Video categories and filtering 
