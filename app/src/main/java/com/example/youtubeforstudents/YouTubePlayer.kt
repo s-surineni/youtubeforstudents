@@ -46,6 +46,7 @@ fun YouTubePlayer(
                     domStorageEnabled = true
                     loadWithOverviewMode = true
                     useWideViewPort = true
+                    mediaPlaybackRequiresUserGesture = false
                 }
                 webViewClient = WebViewClient()
                 
@@ -65,10 +66,11 @@ fun YouTubePlayer(
             }
         },
         update = { webView ->
-            val embedUrl = "https://www.youtube.com/embed/$videoId?autoplay=0&rel=0&enablejsapi=1"
+            val embedUrl = "https://www.youtube.com/embed/$videoId?autoplay=0&rel=0&enablejsapi=1&origin=${android.net.Uri.parse("https://www.youtube.com")}"
             
             val sectionControlScript = if (sectionDurationSeconds != null && sectionDurationSeconds > 0) {
                 """
+                <script src="https://www.youtube.com/iframe_api"></script>
                 <script>
                     var player;
                     var sectionDuration = $sectionDurationSeconds;
@@ -77,14 +79,8 @@ fun YouTubePlayer(
                     var isPaused = false;
                     var checkInterval;
                     
-                    // Load YouTube IFrame API
-                    var tag = document.createElement('script');
-                    tag.src = "https://www.youtube.com/iframe_api";
-                    var firstScriptTag = document.getElementsByTagName('script')[0];
-                    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-                    
                     function onYouTubeIframeAPIReady() {
-                        console.log('YouTube API Ready');
+                        console.log('YouTube API Ready for video: $videoId');
                         player = new YT.Player('player', {
                             height: '100%',
                             width: '100%',
@@ -92,7 +88,8 @@ fun YouTubePlayer(
                             playerVars: {
                                 'autoplay': 0,
                                 'rel': 0,
-                                'enablejsapi': 1
+                                'enablejsapi': 1,
+                                'origin': 'https://www.youtube.com'
                             },
                             events: {
                                 'onReady': onPlayerReady,
@@ -102,13 +99,13 @@ fun YouTubePlayer(
                     }
                     
                     function onPlayerReady(event) {
-                        console.log('Player ready');
+                        console.log('Player ready for video: $videoId');
                         sectionStartTime = 0;
                         isSectionMode = true;
                     }
                     
                     function onPlayerStateChange(event) {
-                        console.log('Player state changed:', event.data);
+                        console.log('Player state changed:', event.data, 'for video: $videoId');
                         if (event.data == YT.PlayerState.PLAYING && isSectionMode) {
                             isPaused = false;
                             startSectionTimer();
@@ -188,7 +185,16 @@ fun YouTubePlayer(
                     window.replaySection = replaySection;
                 </script>
                 """
-            } else ""
+            } else {
+                """
+                <script src="https://www.youtube.com/iframe_api"></script>
+                <script>
+                    function onYouTubeIframeAPIReady() {
+                        console.log('YouTube API Ready for video: $videoId (no section mode)');
+                    }
+                </script>
+                """
+            }
             
             val html =
                 """
@@ -211,7 +217,10 @@ fun YouTubePlayer(
                     $sectionControlScript
                 </head>
                 <body>
-                    <div id="player"></div>
+                    <iframe id="player" src="$embedUrl"
+                            allowfullscreen
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture">
+                    </iframe>
                 </body>
                 </html>
                 """.trimIndent()

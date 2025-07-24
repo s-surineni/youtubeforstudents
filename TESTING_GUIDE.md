@@ -21,7 +21,7 @@
 2. The video should automatically pause after 10 seconds
 3. You should see "Section complete! Ready for next section."
 4. The section number should remain at 1
-5. Two buttons should appear: "Play Next Section" and "Restart"
+5. Three buttons should appear: "Next", "Replay", and "Restart"
 
 ### 4. Test Next Section
 1. Tap "Next Section"

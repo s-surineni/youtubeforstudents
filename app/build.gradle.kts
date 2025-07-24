@@ -5,6 +5,8 @@ plugins {
     id("org.jlleitschuh.gradle.ktlint") version "12.1.0"
 }
 
+import java.util.Properties
+
 android {
     namespace = "com.example.youtubeforstudents"
     compileSdk = 36
@@ -17,6 +19,18 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        
+        // Read API key from local.properties
+        val properties = Properties()
+        val localPropertiesFile = project.rootProject.file("local.properties")
+        val apiKey = if (localPropertiesFile.exists()) {
+            properties.load(localPropertiesFile.inputStream())
+            properties.getProperty("YOUTUBE_API_KEY", "")
+        } else {
+            ""
+        }
+        
+        buildConfigField("String", "YOUTUBE_API_KEY", "\"$apiKey\"")
     }
 
     buildTypes {
@@ -37,6 +51,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
@@ -50,6 +65,14 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    
+    // YouTube API Integration
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+    implementation("com.squareup.okhttp3:okhttp:4.11.0")
+    implementation("com.squareup.okhttp3:logging-interceptor:4.11.0")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
+    
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
