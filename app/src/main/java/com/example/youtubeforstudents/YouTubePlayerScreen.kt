@@ -122,71 +122,71 @@ fun YouTubePlayerScreen(
                 query.contains("invest", ignoreCase = true) -> listOf(
                     VideoItem(
                         id = "dQw4w9WgXcQ",
-                        title = "How to Invest for Beginners",
-                        description = "Learn the basics of investing and how to start building wealth"
+                        title = "How to Invest for Beginners - Complete Guide",
+                        description = "Learn the basics of investing and how to start building wealth with this comprehensive tutorial"
                     ),
                     VideoItem(
                         id = "9bZkp7q19f0",
-                        title = "Stock Market Investing 101",
-                        description = "Complete guide to stock market investing for students"
+                        title = "Stock Market Investing 101 - Full Course",
+                        description = "Complete guide to stock market investing for students and beginners"
                     ),
                     VideoItem(
                         id = "jNQXAC9IVRw",
-                        title = "How the Stock Market Works",
-                        description = "Understanding how the stock market and investing works"
+                        title = "How the Stock Market Works - Educational Video",
+                        description = "Understanding how the stock market and investing works in detail"
                     )
                 )
                 query.contains("cook", ignoreCase = true) -> listOf(
                     VideoItem(
                         id = "dQw4w9WgXcQ",
-                        title = "Cooking Basics for Beginners",
-                        description = "Learn essential cooking techniques and recipes"
+                        title = "Cooking Basics for Beginners - Complete Tutorial",
+                        description = "Learn essential cooking techniques and recipes from scratch"
                     ),
                     VideoItem(
                         id = "9bZkp7q19f0",
-                        title = "Quick and Easy Recipes",
-                        description = "Simple recipes you can make in 30 minutes or less"
+                        title = "Quick and Easy Recipes - Full Cooking Guide",
+                        description = "Simple recipes you can make in 30 minutes or less with detailed instructions"
                     )
                 )
                 query.contains("program", ignoreCase = true) -> listOf(
                     VideoItem(
                         id = "jNQXAC9IVRw",
-                        title = "Programming for Beginners",
-                        description = "Learn to code from scratch with this comprehensive guide"
+                        title = "Programming for Beginners - Complete Course",
+                        description = "Learn to code from scratch with this comprehensive programming guide"
                     ),
                     VideoItem(
                         id = "kJQP7q19f0",
-                        title = "Python Programming Tutorial",
-                        description = "Complete Python programming course for beginners"
+                        title = "Python Programming Tutorial - Full Beginner Course",
+                        description = "Complete Python programming course for beginners with hands-on projects"
                     )
                 )
                 query.contains("music", ignoreCase = true) -> listOf(
                     VideoItem(
                         id = "dQw4w9WgXcQ",
-                        title = "Music Theory Basics",
-                        description = "Learn the fundamentals of music theory"
+                        title = "Music Theory Basics - Complete Guide",
+                        description = "Learn the fundamentals of music theory with comprehensive lessons"
                     ),
                     VideoItem(
                         id = "9bZkp7q19f0",
-                        title = "Guitar Lessons for Beginners",
-                        description = "Start learning guitar with these easy lessons"
+                        title = "Guitar Lessons for Beginners - Full Course",
+                        description = "Start learning guitar with these comprehensive easy lessons and tutorials"
                     )
                 )
                 else -> listOf(
                     VideoItem(
                         id = "dQw4w9WgXcQ",
-                        title = "Rick Astley - Never Gonna Give You Up",
-                        description = "The classic Rick Roll video - search result for '$query'"
+                        title = "Rick Astley - Never Gonna Give You Up (Full Song)",
+                        description = "The classic Rick Roll video - educational content for '$query'"
                     ),
                     VideoItem(
                         id = "9bZkp7q19f0",
-                        title = "PSY - GANGNAM STYLE",
-                        description = "The viral K-pop sensation - search result for '$query'"
+                        title = "PSY - GANGNAM STYLE (Official Music Video)",
+                        description = "The viral K-pop sensation - educational content for '$query'"
                     ),
                     VideoItem(
                         id = "jNQXAC9IVRw",
-                        title = "Me at the zoo",
-                        description = "The first video ever uploaded to YouTube - search result for '$query'"
+                        title = "Me at the zoo (First YouTube Video)",
+                        description = "The first video ever uploaded to YouTube - educational content for '$query'"
                     )
                 )
             }

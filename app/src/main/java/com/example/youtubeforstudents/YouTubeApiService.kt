@@ -10,6 +10,9 @@ interface YouTubeApiService {
         @Query("q") query: String,
         @Query("type") type: String = "video",
         @Query("maxResults") maxResults: Int = 10,
+        @Query("videoDuration") videoDuration: String = "medium", // Exclude shorts (short duration)
+        @Query("videoDefinition") videoDefinition: String = "high", // Prefer high quality
+        @Query("relevanceLanguage") relevanceLanguage: String = "en", // English content
         @Query("key") apiKey: String
     ): SearchResponse
 }

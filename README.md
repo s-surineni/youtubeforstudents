@@ -2,15 +2,16 @@
 
 An Android app that allows students to watch YouTube videos in manageable sections for focused learning sessions.
 
-## Features
+## 🎯 **Features**
 
-- **YouTube Video Player**: Embedded YouTube player with full playback controls
-- **Section-Based Learning**: Break videos into manageable sections for focused learning
-- **Customizable Section Duration**: Set section length in seconds or minutes
-- **Section Controls**: Play next section, replay current section, or restart video
-- **Video Library**: Browse and search through a curated collection of educational videos
-- **Settings Screen**: Dedicated screen for configuring section mode and duration
-- **Responsive Design**: Clean, modern UI that works on different screen sizes
+- **YouTube Video Player**: Embedded YouTube player with full controls
+- **Real YouTube Search**: Search actual YouTube content (requires API key)
+- **Excludes YouTube Shorts**: Focuses on longer educational content
+- **Section-Based Learning**: Play videos in timed sections for better learning
+- **Settings Screen**: Configure section duration and learning preferences
+- **Replay Section**: Replay current section from the beginning
+- **Secure API Key Storage**: API keys stored securely in local.properties
+- **Mock Search Fallback**: Works without API key for development/testing
 
 ## How to Use
 
