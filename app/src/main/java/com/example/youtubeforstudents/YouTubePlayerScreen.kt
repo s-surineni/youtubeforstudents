@@ -16,6 +16,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.delay
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -336,17 +339,25 @@ fun YouTubePlayerScreen(
                                 },
                                 modifier = Modifier.weight(1f).padding(end = 8.dp)
                             ) {
-                                Text("Previous Section")
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                    contentDescription = "Previous Section",
+                                    modifier = Modifier.size(20.dp)
+                                )
                             }
                             
-                            // Replay Current Section button
+                            // Replay Section button
                             OutlinedButton(
                                 onClick = {
                                     webViewRef?.evaluateJavascript("window.replayCurrentSection();", null)
                                 },
                                 modifier = Modifier.weight(1f).padding(horizontal = 4.dp)
                             ) {
-                                Text("Replay Section")
+                                Icon(
+                                    imageVector = Icons.Filled.Refresh,
+                                    contentDescription = "Replay Section",
+                                    modifier = Modifier.size(20.dp)
+                                )
                             }
                             
                             // Next Section button
@@ -356,7 +367,11 @@ fun YouTubePlayerScreen(
                                 },
                                 modifier = Modifier.weight(1f).padding(start = 8.dp)
                             ) {
-                                Text("Next Section")
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                                    contentDescription = "Next Section",
+                                    modifier = Modifier.size(20.dp)
+                                )
                             }
                         }
                         
