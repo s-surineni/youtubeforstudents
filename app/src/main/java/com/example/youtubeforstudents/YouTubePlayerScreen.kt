@@ -200,293 +200,387 @@ fun YouTubePlayerScreen(
         }
     }
     
-    Column(
+    LazyColumn(
         modifier =
             Modifier
                 .fillMaxSize()
                 .padding(16.dp)
     ) {
-        // Header with Settings Button
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Text(
-                text = "YouTube for Students",
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold
+        item {
+            // Header with Settings Button
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = "YouTube for Students",
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                
+                IconButton(onClick = onSettingsClick) {
+                    Icon(
+                        imageVector = Icons.Default.Settings,
+                        contentDescription = "Settings"
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Video Player
+            YouTubePlayer(
+                videoId = currentVideoId,
+                sectionDurationSeconds = sectionDurationSeconds,
+                onSectionComplete = onSectionComplete,
+                onPlayNextSection = onPlayNextSection,
+                onWebViewCreated = onWebViewCreated,
+                modifier = Modifier.fillMaxWidth()
             )
             
-            IconButton(onClick = onSettingsClick) {
-                Icon(
-                    imageVector = Icons.Default.Settings,
-                    contentDescription = "Settings"
-                )
-            }
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            // Current Video Title
+            Text(
+                text = videoTitle,
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.fillMaxWidth()
+            )
         }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Video Player
-        YouTubePlayer(
-            videoId = currentVideoId,
-            sectionDurationSeconds = sectionDurationSeconds,
-            onSectionComplete = onSectionComplete,
-            onPlayNextSection = onPlayNextSection,
-            onWebViewCreated = onWebViewCreated,
-            modifier = Modifier.fillMaxWidth()
-        )
-        
-        Spacer(modifier = Modifier.height(16.dp))
-        
-        // Current Video Title
-        Text(
-            text = videoTitle,
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.fillMaxWidth()
-        )
         
         // Section Status (only show if section mode is enabled)
         if (showSectionControls && sectionDurationSeconds != null) {
-            Spacer(modifier = Modifier.height(12.dp))
-            
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(
-                    containerColor = if (isSectionComplete) 
-                        MaterialTheme.colorScheme.primaryContainer 
-                    else 
-                        MaterialTheme.colorScheme.surfaceVariant
-                )
-            ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(12.dp)
+            item {
+                android.util.Log.d("YouTubePlayerScreen", "ironman: Rendering section controls - showSectionControls: $showSectionControls, sectionDurationSeconds: $sectionDurationSeconds")
+                Spacer(modifier = Modifier.height(12.dp))
+                
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = if (isSectionComplete) 
+                            MaterialTheme.colorScheme.primaryContainer 
+                        else 
+                            MaterialTheme.colorScheme.surfaceVariant
+                    )
                 ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(12.dp)
                     ) {
                         Row(
-                            verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
                         ) {
-                            Text(
-                                text = "Section $currentSection",
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.Medium
-                            )
+                            Row(
+                                verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Text(
+                                    text = "Section $currentSection",
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.Medium
+                                )
+                                
+                                Text(
+                                    text = "•",
+                                    fontSize = 14.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                
+                                Text(
+                                    text = secondsToReadableDuration(sectionDurationSeconds!!),
+                                    fontSize = 14.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
                             
-                            Text(
-                                text = "•",
-                                fontSize = 14.sp,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                            
-                            Text(
-                                text = secondsToReadableDuration(sectionDurationSeconds!!),
-                                fontSize = 14.sp,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
+                            if (isSectionComplete) {
+                                Text(
+                                    text = "Complete",
+                                    fontSize = 12.sp,
+                                    color = MaterialTheme.colorScheme.primary,
+                                    fontWeight = FontWeight.Medium
+                                )
+                            }
                         }
                         
                         if (isSectionComplete) {
+                            Spacer(modifier = Modifier.height(8.dp))
+                            
+                            // Section completion indicator
                             Text(
-                                text = "Complete",
+                                text = "Section completed successfully!",
                                 fontSize = 12.sp,
                                 color = MaterialTheme.colorScheme.primary,
                                 fontWeight = FontWeight.Medium
                             )
                         }
-                    }
-                    
-                    if (isSectionComplete) {
+                        
+                        // Essential controls - always show when section mode is enabled
                         Spacer(modifier = Modifier.height(8.dp))
+                        
+                        // Manual start button for testing
+                        OutlinedButton(
+                            onClick = {
+                                webViewRef?.evaluateJavascript("window.startCountdownTimer();", null)
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                            contentPadding = androidx.compose.foundation.layout.PaddingValues(vertical = 4.dp)
+                        ) {
+                            Text("Start Countdown Timer", fontSize = 10.sp)
+                        }
+                        
+                        Spacer(modifier = Modifier.height(4.dp))
+                        
+                        // Force pause button (enhanced)
+                        OutlinedButton(
+                            onClick = {
+                                webViewRef?.evaluateJavascript("window.forcePauseVideo();", null)
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                            contentPadding = androidx.compose.foundation.layout.PaddingValues(vertical = 4.dp)
+                        ) {
+                            Text("Force Pause Video", fontSize = 10.sp)
+                        }
+                        
+                        Spacer(modifier = Modifier.height(8.dp))
+                        
+                        // Section Navigation Controls
+                        Text(
+                            text = "Section Navigation:",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        
+                        Spacer(modifier = Modifier.height(4.dp))
                         
                         Row(
                             modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
                         ) {
-                            Button(
-                                onClick = onPlayNextSection,
+                            // Previous Section button
+                            OutlinedButton(
+                                onClick = {
+                                    webViewRef?.evaluateJavascript("window.goToPreviousSection();", null)
+                                },
                                 modifier = Modifier.weight(1f),
-                                contentPadding = androidx.compose.foundation.layout.PaddingValues(vertical = 8.dp)
+                                contentPadding = androidx.compose.foundation.layout.PaddingValues(vertical = 4.dp)
                             ) {
-                                Text("Next", fontSize = 12.sp)
+                                Text("Previous", fontSize = 10.sp)
                             }
                             
+                            // Restart Current Section button
                             OutlinedButton(
-                                onClick = onReplaySection,
+                                onClick = {
+                                    webViewRef?.evaluateJavascript("window.restartCurrentSection();", null)
+                                },
                                 modifier = Modifier.weight(1f),
-                                contentPadding = androidx.compose.foundation.layout.PaddingValues(vertical = 8.dp)
+                                contentPadding = androidx.compose.foundation.layout.PaddingValues(vertical = 4.dp)
                             ) {
-                                Text("Replay", fontSize = 12.sp)
+                                Text("Restart", fontSize = 10.sp)
                             }
                             
+                            // Next Section button
                             OutlinedButton(
-                                onClick = onRestartVideo,
+                                onClick = {
+                                    webViewRef?.evaluateJavascript("window.goToNextSection();", null)
+                                },
                                 modifier = Modifier.weight(1f),
-                                contentPadding = androidx.compose.foundation.layout.PaddingValues(vertical = 8.dp)
+                                contentPadding = androidx.compose.foundation.layout.PaddingValues(vertical = 4.dp)
                             ) {
-                                Text("Restart", fontSize = 12.sp)
+                                Text("Next", fontSize = 10.sp)
                             }
+                        }
+                        
+                        Spacer(modifier = Modifier.height(4.dp))
+                        
+                        // Section info display
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                text = "Duration: ${sectionDurationSeconds}s",
+                                fontSize = 10.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            
+                            Text(
+                                text = "Use buttons to navigate",
+                                fontSize = 10.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
                         }
                     }
                 }
             }
         }
         
-        Spacer(modifier = Modifier.height(16.dp))
-        
-        // Search Bar
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            OutlinedTextField(
-                value = searchQuery,
-                onValueChange = { searchQuery = it },
-                label = { Text("Search YouTube...") },
-                modifier = Modifier.weight(1f),
-                singleLine = true
-            )
+        item {
+            Spacer(modifier = Modifier.height(16.dp))
             
-            Button(
-                onClick = { searchYouTube(searchQuery) },
-                enabled = searchQuery.isNotBlank() && !isSearching
+            // Search Bar
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Text("Search")
+                OutlinedTextField(
+                    value = searchQuery,
+                    onValueChange = { searchQuery = it },
+                    label = { Text("Search YouTube...") },
+                    modifier = Modifier.weight(1f),
+                    singleLine = true
+                )
+                
+                Button(
+                    onClick = { searchYouTube(searchQuery) },
+                    enabled = searchQuery.isNotBlank() && !isSearching
+                ) {
+                    Text("Search")
+                }
             }
         }
         
         // API Status Indicator
         if (!YouTubeConfig.isRealApiConfigured()) {
-            Spacer(modifier = Modifier.height(8.dp))
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.secondaryContainer
-                )
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(12.dp),
-                    verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+            item {
+                Spacer(modifier = Modifier.height(8.dp))
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.secondaryContainer
+                    )
                 ) {
-                    Text(
-                        text = "⚠️ Using mock search",
-                        fontSize = 12.sp,
-                        color = MaterialTheme.colorScheme.onSecondaryContainer,
-                        fontWeight = FontWeight.Medium
-                    )
-                    
-                    Spacer(modifier = Modifier.weight(1f))
-                    
-                    Text(
-                        text = "Configure API key for real search",
-                        fontSize = 10.sp,
-                        color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.7f)
-                    )
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(12.dp),
+                        verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "⚠️",
+                            fontSize = 16.sp,
+                            color = MaterialTheme.colorScheme.onSecondaryContainer
+                        )
+                        
+                        Spacer(modifier = Modifier.width(8.dp))
+                        
+                        Text(
+                            text = "Using mock data for development",
+                            fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.onSecondaryContainer,
+                            fontWeight = FontWeight.Medium
+                        )
+                        
+                        Spacer(modifier = Modifier.weight(1f))
+                        
+                        Text(
+                            text = "Configure API key for real search",
+                            fontSize = 10.sp,
+                            color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.7f)
+                        )
+                    }
                 }
             }
         }
         
         // Search Status
         if (isSearching) {
-            Spacer(modifier = Modifier.height(8.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                CircularProgressIndicator(
-                    modifier = Modifier.size(16.dp),
-                    strokeWidth = 2.dp
-                )
-                Text(
-                    text = "Searching YouTube for '$searchQuery'...",
-                    fontSize = 14.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+            item {
+                Spacer(modifier = Modifier.height(8.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(16.dp),
+                        strokeWidth = 2.dp
+                    )
+                    Text(
+                        text = "Searching YouTube for '$searchQuery'...",
+                        fontSize = 14.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
         }
         
         if (searchError != null) {
-            Spacer(modifier = Modifier.height(8.dp))
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.errorContainer
-                )
-            ) {
-                Text(
-                    text = "Search error: $searchError",
-                    fontSize = 12.sp,
-                    color = MaterialTheme.colorScheme.onErrorContainer,
-                    modifier = Modifier.padding(12.dp)
-                )
+            item {
+                Spacer(modifier = Modifier.height(8.dp))
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.errorContainer
+                    )
+                ) {
+                    Text(
+                        text = "Search error: $searchError",
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.onErrorContainer,
+                        modifier = Modifier.padding(12.dp)
+                    )
+                }
             }
         }
         
-        Spacer(modifier = Modifier.height(16.dp))
-        
-        // Video Selection - Show search results or sample videos
-        val videosToShow = if (searchResults.isNotEmpty()) {
-            searchResults
-        } else {
-            sampleVideos
+        item {
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            // Video Selection - Show search results or sample videos
+            val videosToShow = if (searchResults.isNotEmpty()) {
+                searchResults
+            } else {
+                sampleVideos
+            }
+            
+            val sectionTitle = if (searchResults.isNotEmpty()) {
+                "Search Results for '$searchQuery':"
+            } else {
+                "Available Videos:"
+            }
+            
+            Text(
+                text = sectionTitle,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Medium,
+                modifier = Modifier.fillMaxWidth()
+            )
+            
+            Spacer(modifier = Modifier.height(8.dp))
         }
         
-        val sectionTitle = if (searchResults.isNotEmpty()) {
-            "Search Results for '$searchQuery':"
-        } else {
-            "Available Videos:"
-        }
-        
-        Text(
-            text = sectionTitle,
-            fontSize = 16.sp,
-            fontWeight = FontWeight.Medium,
-            modifier = Modifier.fillMaxWidth()
-        )
-        
-        Spacer(modifier = Modifier.height(8.dp))
-        
-        LazyColumn(
-            modifier = Modifier.weight(1f),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            items(videosToShow) { video ->
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    onClick = {
-                        currentVideoId = video.id
-                        videoTitle = video.title
-                        onVideoChange()
-                    }
+        items(if (searchResults.isNotEmpty()) searchResults else sampleVideos) { video ->
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                onClick = {
+                    currentVideoId = video.id
+                    videoTitle = video.title
+                    onVideoChange()
+                }
+            ) {
+                Column(
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp)
                 ) {
-                    Column(
-                        modifier =
-                            Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp)
-                    ) {
-                        Text(
-                            text = video.title,
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Medium
-                        )
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = video.description,
-                            fontSize = 12.sp,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
+                    Text(
+                        text = video.title,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = video.description,
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
             }
         }

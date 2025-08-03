@@ -31,13 +31,20 @@ fun AppNavigation() {
     var currentScreen by remember { mutableStateOf("main") }
     
     // Section control state - shared between screens
-    var sectionDurationNumber by remember { mutableStateOf("") }
-    var selectedTimeUnit by remember { mutableStateOf(TimeUnit.MINUTES) }
-    var sectionDurationSeconds by remember { mutableStateOf<Int?>(null) }
-    var showSectionControls by remember { mutableStateOf(false) }
+    var sectionDurationNumber by remember { mutableStateOf("5") } // Set default for testing
+    var selectedTimeUnit by remember { mutableStateOf(TimeUnit.SECONDS) } // Use seconds for easier testing
+    var sectionDurationSeconds by remember { mutableStateOf<Int?>(5) } // Set default for testing
+    var showSectionControls by remember { mutableStateOf(true) } // Temporarily enable by default for testing
     var isSectionComplete by remember { mutableStateOf(false) }
     var currentSection by remember { mutableStateOf(1) }
     var webViewRef by remember { mutableStateOf<android.webkit.WebView?>(null) }
+    
+    // Debug logging
+    LaunchedEffect(showSectionControls, sectionDurationSeconds) {
+        android.util.Log.d("MainActivity", "ironman: showSectionControls = $showSectionControls")
+        android.util.Log.d("MainActivity", "ironman: sectionDurationSeconds = $sectionDurationSeconds")
+        android.util.Log.d("MainActivity", "ironman: sectionDurationNumber = $sectionDurationNumber")
+    }
     
     // Helper function to convert number and time unit to seconds
     fun calculateSectionDurationSeconds(number: String, timeUnit: TimeUnit): Int? {
