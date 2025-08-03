@@ -94,16 +94,21 @@ fun YouTubePlayer(
                     <script src="https://www.youtube.com/iframe_api"></script>
                     <script>
                         console.log('ironman: Section mode JavaScript code loaded');
-                        var player;
+                        // Section mode variables
                         var sectionDuration = $sectionDurationSeconds;
                         var sectionStartTime = 0;
-                        var isSectionMode = true;
+                        var currentSection = 0;
+                        var totalSections = 0;
+                        var isSectionMode = false;
                         var isPaused = false;
-                        var checkInterval;
                         var playerReady = false;
-                        var countdownTimer = null;
-                        var countdownStartTime = null;
                         var apiReady = false;
+                        var player = null;
+                        var checkInterval = null;
+                        var countdownTimer = null;
+                        var sectionTimer = null;
+                        var countdownStartTime = 0;
+                        var readyCheckInterval = null;
                         
                         console.log('ironman: Variables initialized - sectionDuration:', sectionDuration);
                         
@@ -230,6 +235,23 @@ fun YouTubePlayer(
                             console.log('ironman: Section duration set to:', sectionDuration, 'seconds');
                             playerReady = true;
                             sectionStartTime = 0;
+                            currentSection = 0;
+                            
+                            // Calculate total sections based on video duration
+                            if (player && typeof player.getDuration === 'function') {
+                                try {
+                                    var videoDuration = player.getDuration();
+                                    totalSections = Math.ceil(videoDuration / sectionDuration);
+                                    console.log('ironman: Video duration:', videoDuration, 'seconds, Total sections:', totalSections);
+                                } catch (e) {
+                                    console.log('ironman: Error getting video duration, using default:', e);
+                                    totalSections = 10; // Default fallback
+                                }
+                            } else {
+                                console.log('ironman: Cannot get video duration, using default total sections');
+                                totalSections = 10; // Default fallback
+                            }
+                            
                             isSectionMode = true;
                             isPaused = false;
                             console.log('ironman: Section mode initialized - start time:', sectionStartTime, 'end time:', sectionStartTime + sectionDuration);
@@ -480,46 +502,120 @@ fun YouTubePlayer(
                             console.log('ironman: All YouTube API methods failed');
                         };
                         
-                        // Section navigation functions
+                        // Function to go to next section
                         window.goToNextSection = function() {
                             console.log('ironman: Going to next section');
+                            currentSection++;
+                            if (currentSection >= totalSections) {
+                                currentSection = 0; // Loop back to first section
+                            }
+                            sectionStartTime = currentSection * sectionDuration;
+                            
+                            // Stop any existing timers
+                            if (sectionTimer) {
+                                clearTimeout(sectionTimer);
+                                sectionTimer = null;
+                            }
+                            if (countdownTimer) {
+                                clearTimeout(countdownTimer);
+                                countdownTimer = null;
+                            }
+                            
+                            // Seek to the new section start time
                             if (player && typeof player.seekTo === 'function') {
                                 try {
-                                    var currentTime = player.getCurrentTime();
-                                    var nextSectionStart = Math.floor(currentTime / sectionDuration) * sectionDuration + sectionDuration;
-                                    player.seekTo(nextSectionStart, true);
-                                    console.log('ironman: Successfully seeked to next section at', nextSectionStart, 'seconds');
+                                    player.seekTo(sectionStartTime, true);
+                                    console.log('ironman: Successfully seeked to next section at', sectionStartTime, 'seconds');
+                                    
+                                    // Start playing the video
+                                    setTimeout(function() {
+                                        if (player && typeof player.playVideo === 'function') {
+                                            player.playVideo();
+                                            console.log('ironman: Started playing video at new section');
+                                        }
+                                    }, 500);
+                                    
+                                    // Notify Android about section change
+                                    Android.onSectionChanged(currentSection, totalSections, sectionStartTime);
                                 } catch (e) {
-                                    console.log('ironman: Error going to next section:', e.message);
+                                    console.log('ironman: Error seeking to next section:', e);
                                 }
                             }
                         };
                         
+                        // Function to go to previous section
                         window.goToPreviousSection = function() {
                             console.log('ironman: Going to previous section');
+                            currentSection--;
+                            if (currentSection < 0) {
+                                currentSection = totalSections - 1; // Loop to last section
+                            }
+                            sectionStartTime = currentSection * sectionDuration;
+                            
+                            // Stop any existing timers
+                            if (sectionTimer) {
+                                clearTimeout(sectionTimer);
+                                sectionTimer = null;
+                            }
+                            if (countdownTimer) {
+                                clearTimeout(countdownTimer);
+                                countdownTimer = null;
+                            }
+                            
+                            // Seek to the new section start time
                             if (player && typeof player.seekTo === 'function') {
                                 try {
-                                    var currentTime = player.getCurrentTime();
-                                    var prevSectionStart = Math.floor(currentTime / sectionDuration) * sectionDuration - sectionDuration;
-                                    if (prevSectionStart < 0) prevSectionStart = 0;
-                                    player.seekTo(prevSectionStart, true);
-                                    console.log('ironman: Successfully seeked to previous section at', prevSectionStart, 'seconds');
+                                    player.seekTo(sectionStartTime, true);
+                                    console.log('ironman: Successfully seeked to previous section at', sectionStartTime, 'seconds');
+                                    
+                                    // Start playing the video
+                                    setTimeout(function() {
+                                        if (player && typeof player.playVideo === 'function') {
+                                            player.playVideo();
+                                            console.log('ironman: Started playing video at new section');
+                                        }
+                                    }, 500);
+                                    
+                                    // Notify Android about section change
+                                    Android.onSectionChanged(currentSection, totalSections, sectionStartTime);
                                 } catch (e) {
-                                    console.log('ironman: Error going to previous section:', e.message);
+                                    console.log('ironman: Error seeking to previous section:', e);
                                 }
                             }
                         };
                         
+                        // Function to restart current section
                         window.restartCurrentSection = function() {
                             console.log('ironman: Restarting current section');
+                            
+                            // Stop any existing timers
+                            if (sectionTimer) {
+                                clearTimeout(sectionTimer);
+                                sectionTimer = null;
+                            }
+                            if (countdownTimer) {
+                                clearTimeout(countdownTimer);
+                                countdownTimer = null;
+                            }
+                            
+                            // Seek to the current section start time
                             if (player && typeof player.seekTo === 'function') {
                                 try {
-                                    var currentTime = player.getCurrentTime();
-                                    var sectionStart = Math.floor(currentTime / sectionDuration) * sectionDuration;
-                                    player.seekTo(sectionStart, true);
-                                    console.log('ironman: Successfully restarted current section at', sectionStart, 'seconds');
+                                    player.seekTo(sectionStartTime, true);
+                                    console.log('ironman: Successfully seeked to restart section at', sectionStartTime, 'seconds');
+                                    
+                                    // Start playing the video
+                                    setTimeout(function() {
+                                        if (player && typeof player.playVideo === 'function') {
+                                            player.playVideo();
+                                            console.log('ironman: Started playing video at restarted section');
+                                        }
+                                    }, 500);
+                                    
+                                    // Notify Android about section restart
+                                    Android.onSectionRestarted(currentSection, totalSections, sectionStartTime);
                                 } catch (e) {
-                                    console.log('ironman: Error restarting current section:', e.message);
+                                    console.log('ironman: Error seeking to restart section:', e);
                                 }
                             }
                         };
