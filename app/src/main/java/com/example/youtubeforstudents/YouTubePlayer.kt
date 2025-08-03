@@ -305,14 +305,68 @@ fun YouTubePlayer(
                             }
                         }
                         
+                        // Function to start section timer
                         function startSectionTimer() {
-                            if (checkInterval) {
-                                console.log('ironman: Timer already running, clearing existing timer');
-                                clearInterval(checkInterval);
+                            if (sectionTimer) {
+                                clearTimeout(sectionTimer);
                             }
                             console.log('ironman: Starting section timer for', sectionDuration, 'seconds');
                             console.log('ironman: Section will end at:', sectionStartTime + sectionDuration, 'seconds');
-                            checkInterval = setInterval(checkSectionTime, 500); // Check every 500ms
+                            
+                            // Start the section timer
+                            updateSectionTimer();
+                            
+                            // Also start countdown timer as backup
+                            startCountdownTimer();
+                        }
+                        
+                        // Section timer function
+                        function updateSectionTimer() {
+                            if (!player || typeof player.getCurrentTime !== 'function') {
+                                console.log('ironman: Player not ready for section timer');
+                                return;
+                            }
+                            
+                            try {
+                                var currentTime = player.getCurrentTime();
+                                var sectionEndTime = sectionStartTime + sectionDuration;
+                                
+                                console.log('ironman: Current time:', currentTime, 'Section start:', sectionStartTime, 'Section end:', sectionEndTime, 'Duration:', sectionDuration);
+                                
+                                // Check if we've reached the end of the current section
+                                if (currentTime >= sectionEndTime) {
+                                    console.log('ironman: Section complete, pausing video at', currentTime, 'seconds');
+                                    
+                                    // Stop the section timer
+                                    if (sectionTimer) {
+                                        clearTimeout(sectionTimer);
+                                        sectionTimer = null;
+                                    }
+                                    
+                                    // Pause the video using YouTube API
+                                    if (player && typeof player.pauseVideo === 'function') {
+                                        player.pauseVideo();
+                                        console.log('ironman: Video paused successfully using YouTube API');
+                                    }
+                                    
+                                    // Notify Android that section is complete
+                                    try {
+                                        Android.onSectionComplete();
+                                    } catch (e) {
+                                        console.log('ironman: Error notifying Android of section completion:', e);
+                                    }
+                                    
+                                    return;
+                                }
+                                
+                                // Continue monitoring - check again in 500ms
+                                sectionTimer = setTimeout(updateSectionTimer, 500);
+                                
+                            } catch (e) {
+                                console.log('ironman: Error in section timer:', e);
+                                // Retry after a short delay
+                                sectionTimer = setTimeout(updateSectionTimer, 1000);
+                            }
                         }
                         
                         function stopSectionTimer() {
@@ -532,6 +586,11 @@ fun YouTubePlayer(
                                         if (player && typeof player.playVideo === 'function') {
                                             player.playVideo();
                                             console.log('ironman: Started playing video at new section');
+                                            
+                                            // Start section timer after video starts
+                                            setTimeout(function() {
+                                                startSectionTimer();
+                                            }, 1000);
                                         }
                                     }, 500);
                                     
@@ -568,16 +627,26 @@ fun YouTubePlayer(
                                     player.seekTo(sectionStartTime, true);
                                     console.log('ironman: Successfully seeked to previous section at', sectionStartTime, 'seconds');
                                     
-                                    // Start playing the video
+                                    // Notify Android about section change
+                                    try {
+                                        Android.onSectionChanged(currentSection, totalSections, sectionStartTime);
+                                    } catch (e) {
+                                        console.log('ironman: Error seeking to previous section:', e);
+                                    }
+                                    
+                                    // Start playing after a short delay to ensure seek completes
                                     setTimeout(function() {
                                         if (player && typeof player.playVideo === 'function') {
                                             player.playVideo();
                                             console.log('ironman: Started playing video at new section');
+                                            
+                                            // Start section timer after video starts
+                                            setTimeout(function() {
+                                                startSectionTimer();
+                                            }, 1000);
                                         }
                                     }, 500);
                                     
-                                    // Notify Android about section change
-                                    Android.onSectionChanged(currentSection, totalSections, sectionStartTime);
                                 } catch (e) {
                                     console.log('ironman: Error seeking to previous section:', e);
                                 }
