@@ -322,66 +322,31 @@ fun YouTubePlayerScreen(
                         // Essential controls - always show when section mode is enabled
                         Spacer(modifier = Modifier.height(8.dp))
                         
-                        // Manual start button for testing
-                        OutlinedButton(
-                            onClick = {
-                                webViewRef?.evaluateJavascript("window.startCountdownTimer();", null)
-                            },
-                            modifier = Modifier.fillMaxWidth(),
-                            contentPadding = androidx.compose.foundation.layout.PaddingValues(vertical = 4.dp)
-                        ) {
-                            Text("Start Countdown Timer", fontSize = 10.sp)
-                        }
-                        
-                        Spacer(modifier = Modifier.height(4.dp))
-                        
-                        // Force pause button (enhanced)
-                        OutlinedButton(
-                            onClick = {
-                                webViewRef?.evaluateJavascript("window.forcePauseVideo();", null)
-                            },
-                            modifier = Modifier.fillMaxWidth(),
-                            contentPadding = androidx.compose.foundation.layout.PaddingValues(vertical = 4.dp)
-                        ) {
-                            Text("Force Pause Video", fontSize = 10.sp)
-                        }
-                        
-                        Spacer(modifier = Modifier.height(8.dp))
-                        
                         // Section Navigation Controls
-                        Text(
-                            text = "Section Navigation:",
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Medium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        
-                        Spacer(modifier = Modifier.height(4.dp))
-                        
                         Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            horizontalArrangement = Arrangement.SpaceEvenly
                         ) {
                             // Previous Section button
                             OutlinedButton(
                                 onClick = {
                                     webViewRef?.evaluateJavascript("window.goToPreviousSection();", null)
                                 },
-                                modifier = Modifier.weight(1f),
-                                contentPadding = androidx.compose.foundation.layout.PaddingValues(vertical = 4.dp)
+                                modifier = Modifier.weight(1f).padding(end = 8.dp)
                             ) {
-                                Text("Previous", fontSize = 10.sp)
+                                Text("Previous Section")
                             }
                             
-                            // Restart Current Section button
+                            // Replay Current Section button
                             OutlinedButton(
                                 onClick = {
-                                    webViewRef?.evaluateJavascript("window.restartCurrentSection();", null)
+                                    webViewRef?.evaluateJavascript("window.replayCurrentSection();", null)
                                 },
-                                modifier = Modifier.weight(1f),
-                                contentPadding = androidx.compose.foundation.layout.PaddingValues(vertical = 4.dp)
+                                modifier = Modifier.weight(1f).padding(horizontal = 4.dp)
                             ) {
-                                Text("Restart", fontSize = 10.sp)
+                                Text("Replay Section")
                             }
                             
                             // Next Section button
@@ -389,10 +354,9 @@ fun YouTubePlayerScreen(
                                 onClick = {
                                     webViewRef?.evaluateJavascript("window.goToNextSection();", null)
                                 },
-                                modifier = Modifier.weight(1f),
-                                contentPadding = androidx.compose.foundation.layout.PaddingValues(vertical = 4.dp)
+                                modifier = Modifier.weight(1f).padding(start = 8.dp)
                             ) {
-                                Text("Next", fontSize = 10.sp)
+                                Text("Next Section")
                             }
                         }
                         

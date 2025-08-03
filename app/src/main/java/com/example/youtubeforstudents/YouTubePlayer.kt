@@ -653,9 +653,9 @@ fun YouTubePlayer(
                             }
                         };
                         
-                        // Function to restart current section
-                        window.restartCurrentSection = function() {
-                            console.log('ironman: Restarting current section');
+                        // Function to replay current section
+                        window.replayCurrentSection = function() {
+                            console.log('ironman: Replaying current section');
                             
                             // Stop any existing timers
                             if (sectionTimer) {
@@ -667,24 +667,33 @@ fun YouTubePlayer(
                                 countdownTimer = null;
                             }
                             
-                            // Seek to the current section start time
+                            // Seek to the start of current section
                             if (player && typeof player.seekTo === 'function') {
                                 try {
                                     player.seekTo(sectionStartTime, true);
-                                    console.log('ironman: Successfully seeked to restart section at', sectionStartTime, 'seconds');
+                                    console.log('ironman: Successfully seeked to current section at', sectionStartTime, 'seconds');
                                     
-                                    // Start playing the video
+                                    // Notify Android about section change
+                                    try {
+                                        Android.onSectionChanged(currentSection, totalSections, sectionStartTime);
+                                    } catch (e) {
+                                        console.log('ironman: Error seeking to current section:', e);
+                                    }
+                                    
+                                    // Start playing after a short delay to ensure seek completes
                                     setTimeout(function() {
                                         if (player && typeof player.playVideo === 'function') {
                                             player.playVideo();
-                                            console.log('ironman: Started playing video at restarted section');
+                                            console.log('ironman: Started playing video at current section');
+                                            
+                                            // Start section timer after video starts
+                                            setTimeout(function() {
+                                                startSectionTimer();
+                                            }, 1000);
                                         }
                                     }, 500);
-                                    
-                                    // Notify Android about section restart
-                                    Android.onSectionRestarted(currentSection, totalSections, sectionStartTime);
                                 } catch (e) {
-                                    console.log('ironman: Error seeking to restart section:', e);
+                                    console.log('ironman: Error seeking to current section:', e);
                                 }
                             }
                         };
