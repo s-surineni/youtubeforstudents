@@ -18,8 +18,10 @@ import android.webkit.JavascriptInterface
 fun YouTubePlayer(
     videoId: String,
     sectionDurationSeconds: Int? = null,
+    resumePosition: Double = 0.0,
     onSectionComplete: () -> Unit = {},
     onPlayNextSection: () -> Unit = {},
+    onPositionChanged: (Double) -> Unit = {},
     onWebViewCreated: (WebView) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
@@ -36,6 +38,16 @@ fun YouTubePlayer(
             @android.webkit.JavascriptInterface
             fun playNextSection() {
                 onPlayNextSection()
+            }
+            
+            @android.webkit.JavascriptInterface
+            fun onPositionChanged(position: String) {
+                try {
+                    val pos = position.toDouble()
+                    onPositionChanged(pos)
+                } catch (e: Exception) {
+                    android.util.Log.e("YouTubePlayer", "Error parsing position: $position", e)
+                }
             }
         }
     }
@@ -74,6 +86,7 @@ fun YouTubePlayer(
             android.util.Log.d("YouTubePlayer", "ironman: sectionDurationSeconds = $sectionDurationSeconds")
             android.util.Log.d("YouTubePlayer", "ironman: sectionDurationSeconds != null = ${sectionDurationSeconds != null}")
             android.util.Log.d("YouTubePlayer", "ironman: sectionDurationSeconds > 0 = ${sectionDurationSeconds != null && sectionDurationSeconds > 0}")
+            android.util.Log.d("YouTubePlayer", "ironman: resumePosition = $resumePosition")
             
             val sectionControlScript = if (sectionDurationSeconds != null && sectionDurationSeconds > 0) {
                 android.util.Log.d("YouTubePlayer", "ironman: Loading SECTION MODE JavaScript code")
@@ -94,6 +107,8 @@ fun YouTubePlayer(
                     <script src="https://www.youtube.com/iframe_api"></script>
                     <script>
                         console.log('ironman: Section mode JavaScript code loaded');
+                        console.log('ironman: Resume position set to: $resumePosition seconds');
+                        
                         // Section mode variables
                         var sectionDuration = $sectionDurationSeconds;
                         var sectionStartTime = 0;
@@ -109,8 +124,10 @@ fun YouTubePlayer(
                         var sectionTimer = null;
                         var countdownStartTime = 0;
                         var readyCheckInterval = null;
+                        var positionUpdateInterval = null;
+                        var resumePosition = $resumePosition;
                         
-                        console.log('ironman: Variables initialized - sectionDuration:', sectionDuration);
+                        console.log('ironman: Variables initialized - sectionDuration:', sectionDuration, 'resumePosition:', resumePosition);
                         
                         // Global function that YouTube API calls when ready
                         function onYouTubeIframeAPIReady() {
@@ -233,6 +250,7 @@ fun YouTubePlayer(
                         function onPlayerReady(event) {
                             console.log('ironman: Player ready for video: $videoId');
                             console.log('ironman: Section duration set to:', sectionDuration, 'seconds');
+                            console.log('ironman: Resume position set to:', resumePosition, 'seconds');
                             playerReady = true;
                             sectionStartTime = 0;
                             currentSection = 0;
@@ -256,6 +274,29 @@ fun YouTubePlayer(
                             isPaused = false;
                             console.log('ironman: Section mode initialized - start time:', sectionStartTime, 'end time:', sectionStartTime + sectionDuration);
                             
+                            // Start position tracking
+                            startPositionTracking();
+                            
+                            // If resume position is set, seek to it
+                            if (resumePosition > 0) {
+                                console.log('ironman: Seeking to resume position:', resumePosition, 'seconds');
+                                setTimeout(function() {
+                                    if (player && typeof player.seekTo === 'function') {
+                                        try {
+                                            player.seekTo(resumePosition, true);
+                                            console.log('ironman: Successfully seeked to resume position');
+                                            
+                                            // Calculate which section we're in based on resume position
+                                            currentSection = Math.floor(resumePosition / sectionDuration);
+                                            sectionStartTime = currentSection * sectionDuration;
+                                            console.log('ironman: Resumed at section:', currentSection, 'start time:', sectionStartTime);
+                                        } catch (e) {
+                                            console.log('ironman: Error seeking to resume position:', e);
+                                        }
+                                    }
+                                }, 1000);
+                            }
+                            
                             // Start countdown timer automatically as fallback
                             setTimeout(function() {
                                 if (typeof window.startCountdownTimer === 'function') {
@@ -263,6 +304,25 @@ fun YouTubePlayer(
                                     window.startCountdownTimer();
                                 }
                             }, 2000); // Wait 2 seconds after ready
+                        }
+                        
+                        function startPositionTracking() {
+                            console.log('ironman: Starting position tracking');
+                            if (positionUpdateInterval) {
+                                clearInterval(positionUpdateInterval);
+                            }
+                            
+                            positionUpdateInterval = setInterval(function() {
+                                if (player && typeof player.getCurrentTime === 'function') {
+                                    try {
+                                        var currentTime = player.getCurrentTime();
+                                        // Notify Android about position change
+                                        Android.onPositionChanged(currentTime.toString());
+                                    } catch (e) {
+                                        console.log('ironman: Error getting current time for position tracking:', e);
+                                    }
+                                }
+                            }, 5000); // Update position every 5 seconds
                         }
                         
                         function onPlayerStateChange(event) {
@@ -707,8 +767,88 @@ fun YouTubePlayer(
                 <script src="https://www.youtube.com/iframe_api"></script>
                 <script>
                     console.log('ironman: No section mode JavaScript code loaded');
+                    console.log('ironman: Resume position set to: $resumePosition seconds');
+                    
+                    var player = null;
+                    var playerReady = false;
+                    var resumePosition = $resumePosition;
+                    var positionUpdateInterval = null;
+                    
                     function onYouTubeIframeAPIReady() {
                         console.log('ironman: YouTube API Ready for video: $videoId (no section mode)');
+                        createPlayer();
+                    }
+                    
+                    function createPlayer() {
+                        console.log('ironman: Creating player without section mode');
+                        
+                        player = new YT.Player('player', {
+                            height: '100%',
+                            width: '100%',
+                            videoId: '$videoId',
+                            playerVars: {
+                                'autoplay': 0,
+                                'rel': 0,
+                                'enablejsapi': 1,
+                                'origin': window.location.origin || 'https://www.youtube.com',
+                                'controls': 1,
+                                'modestbranding': 1,
+                                'showinfo': 0,
+                                'iv_load_policy': 3,
+                                'cc_load_policy': 0,
+                                'fs': 1,
+                                'disablekb': 0
+                            },
+                            events: {
+                                'onReady': function(event) {
+                                    console.log('ironman: Player ready (no section mode)');
+                                    playerReady = true;
+                                    
+                                    // Start position tracking
+                                    startPositionTracking();
+                                    
+                                    // If resume position is set, seek to it
+                                    if (resumePosition > 0) {
+                                        console.log('ironman: Seeking to resume position:', resumePosition, 'seconds');
+                                        setTimeout(function() {
+                                            if (player && typeof player.seekTo === 'function') {
+                                                try {
+                                                    player.seekTo(resumePosition, true);
+                                                    console.log('ironman: Successfully seeked to resume position');
+                                                } catch (e) {
+                                                    console.log('ironman: Error seeking to resume position:', e);
+                                                }
+                                            }
+                                        }, 1000);
+                                    }
+                                },
+                                'onStateChange': function(event) {
+                                    console.log('ironman: Player state changed (no section mode):', event.data);
+                                },
+                                'onError': function(event) {
+                                    console.log('ironman: Player error (no section mode):', event.data);
+                                }
+                            }
+                        });
+                    }
+                    
+                    function startPositionTracking() {
+                        console.log('ironman: Starting position tracking (no section mode)');
+                        if (positionUpdateInterval) {
+                            clearInterval(positionUpdateInterval);
+                        }
+                        
+                        positionUpdateInterval = setInterval(function() {
+                            if (player && typeof player.getCurrentTime === 'function') {
+                                try {
+                                    var currentTime = player.getCurrentTime();
+                                    // Notify Android about position change
+                                    Android.onPositionChanged(currentTime.toString());
+                                } catch (e) {
+                                    console.log('ironman: Error getting current time for position tracking:', e);
+                                }
+                            }
+                        }, 5000); // Update position every 5 seconds
                     }
                 </script>
                 """

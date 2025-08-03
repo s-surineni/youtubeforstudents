@@ -12,6 +12,10 @@ import androidx.compose.ui.unit.sp
 import android.webkit.WebView
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.automirrored.filled.List
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.ui.platform.LocalContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -42,6 +46,14 @@ fun YouTubePlayerScreen(
     var searchResults by remember { mutableStateOf<List<VideoItem>>(emptyList()) }
     var isSearching by remember { mutableStateOf(false) }
     var searchError by remember { mutableStateOf<String?>(null) }
+    
+    // Playlist state
+    val context = LocalContext.current
+    val playlistManager = remember { PlaylistManager(context) }
+    var playlist by remember { mutableStateOf<Playlist>(Playlist()) }
+    var showPlaylist by remember { mutableStateOf(false) }
+    var currentVideoPosition by remember { mutableStateOf(0.0) }
+    var isInPlaylist by remember { mutableStateOf(false) }
     
     // Get YouTube API key from config
     val youtubeApiKey = YouTubeConfig.getApiKey()
@@ -76,6 +88,23 @@ fun YouTubePlayerScreen(
                 )
             )
         }
+    
+    // Load playlist on startup
+    LaunchedEffect(Unit) {
+        playlist = playlistManager.getPlaylist()
+    }
+    
+    // Check if current video is in playlist
+    LaunchedEffect(currentVideoId) {
+        isInPlaylist = playlistManager.isInPlaylist(currentVideoId)
+    }
+    
+    // Update resume position periodically
+    LaunchedEffect(currentVideoPosition) {
+        if (isInPlaylist && currentVideoPosition > 0) {
+            playlistManager.updateResumePosition(currentVideoId, currentVideoPosition)
+        }
+    }
 
     // Helper function to convert seconds to readable duration
     fun secondsToReadableDuration(seconds: Int): String {
@@ -92,7 +121,49 @@ fun YouTubePlayerScreen(
             }
         }
     }
+    
+    // Helper function to format time in MM:SS format
+    fun formatTime(seconds: Double): String {
+        val totalSeconds = seconds.toInt()
+        val minutes = totalSeconds / 60
+        val remainingSeconds = totalSeconds % 60
+        return String.format("%02d:%02d", minutes, remainingSeconds)
+    }
 
+    // Playlist helper functions
+    fun addToPlaylist(video: VideoItem) {
+        CoroutineScope(Dispatchers.Main).launch {
+            val success = playlistManager.addToPlaylist(video)
+            if (success) {
+                playlist = playlistManager.getPlaylist()
+                isInPlaylist = true
+            }
+        }
+    }
+    
+    fun removeFromPlaylist(videoId: String) {
+        CoroutineScope(Dispatchers.Main).launch {
+            val success = playlistManager.removeFromPlaylist(videoId)
+            if (success) {
+                playlist = playlistManager.getPlaylist()
+                if (videoId == currentVideoId) {
+                    isInPlaylist = false
+                }
+            }
+        }
+    }
+    
+    fun playFromPlaylist(playlistItem: PlaylistItem) {
+        currentVideoId = playlistItem.videoId
+        videoTitle = playlistItem.title
+        onVideoChange()
+        showPlaylist = false
+    }
+    
+    fun getResumePosition(videoId: String): Double {
+        return playlist.items.find { it.videoId == videoId }?.resumePosition ?: 0.0
+    }
+    
     // Function to search YouTube using real API
     fun searchYouTube(query: String) {
         if (query.isBlank()) {
@@ -210,7 +281,7 @@ fun YouTubePlayerScreen(
                 .padding(16.dp)
     ) {
         item {
-            // Header with Settings Button
+            // Header with Settings and Playlist Buttons
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
@@ -221,11 +292,22 @@ fun YouTubePlayerScreen(
                     fontWeight = FontWeight.Bold
                 )
                 
-                IconButton(onClick = onSettingsClick) {
-                    Icon(
-                        imageVector = Icons.Default.Settings,
-                        contentDescription = "Settings"
-                    )
+                Row {
+                    // Playlist button
+                    IconButton(onClick = { showPlaylist = !showPlaylist }) {
+                        Icon(
+                            imageVector = if (showPlaylist) Icons.AutoMirrored.Filled.List else Icons.Default.Add,
+                            contentDescription = if (showPlaylist) "Hide Playlist" else "Show Playlist"
+                        )
+                    }
+                    
+                    // Settings button
+                    IconButton(onClick = onSettingsClick) {
+                        Icon(
+                            imageVector = Icons.Default.Settings,
+                            contentDescription = "Settings"
+                        )
+                    }
                 }
             }
 
@@ -235,21 +317,152 @@ fun YouTubePlayerScreen(
             YouTubePlayer(
                 videoId = currentVideoId,
                 sectionDurationSeconds = sectionDurationSeconds,
+                resumePosition = getResumePosition(currentVideoId),
                 onSectionComplete = onSectionComplete,
                 onPlayNextSection = onPlayNextSection,
+                onPositionChanged = { position ->
+                    currentVideoPosition = position
+                },
                 onWebViewCreated = onWebViewCreated,
                 modifier = Modifier.fillMaxWidth()
             )
             
             Spacer(modifier = Modifier.height(16.dp))
             
-            // Current Video Title
-            Text(
-                text = videoTitle,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.fillMaxWidth()
-            )
+            // Current Video Title with Add to Playlist Button
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+            ) {
+                Text(
+                    text = videoTitle,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.weight(1f)
+                )
+                
+                // Add/Remove from playlist button
+                IconButton(
+                    onClick = {
+                        val currentVideo = VideoItem(currentVideoId, videoTitle, "")
+                        if (isInPlaylist) {
+                            removeFromPlaylist(currentVideoId)
+                        } else {
+                            addToPlaylist(currentVideo)
+                        }
+                    }
+                ) {
+                    Icon(
+                        imageVector = if (isInPlaylist) Icons.Default.Delete else Icons.Default.Add,
+                        contentDescription = if (isInPlaylist) "Remove from Playlist" else "Add to Playlist",
+                        tint = if (isInPlaylist) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
+        }
+        
+        // Playlist Section
+        if (showPlaylist) {
+            item {
+                Spacer(modifier = Modifier.height(16.dp))
+                
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.secondaryContainer
+                    )
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "My Playlist (${playlist.items.size}/5)",
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                            
+                            if (playlist.items.isNotEmpty()) {
+                                TextButton(
+                                    onClick = {
+                                        CoroutineScope(Dispatchers.Main).launch {
+                                            playlistManager.clearPlaylist()
+                                            playlist = playlistManager.getPlaylist()
+                                            isInPlaylist = false
+                                        }
+                                    }
+                                ) {
+                                    Text("Clear All")
+                                }
+                            }
+                        }
+                        
+                        if (playlist.items.isEmpty()) {
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = "No videos in playlist. Add videos to resume from where you left off!",
+                                fontSize = 14.sp,
+                                color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.7f)
+                            )
+                        } else {
+                            Spacer(modifier = Modifier.height(8.dp))
+                            
+                            playlist.items.forEach { playlistItem ->
+                                Card(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(vertical = 4.dp),
+                                    onClick = { playFromPlaylist(playlistItem) }
+                                ) {
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(12.dp),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+                                    ) {
+                                        Column(
+                                            modifier = Modifier.weight(1f)
+                                        ) {
+                                            Text(
+                                                text = playlistItem.title,
+                                                fontSize = 14.sp,
+                                                fontWeight = FontWeight.Medium,
+                                                maxLines = 2
+                                            )
+                                            
+                                            Spacer(modifier = Modifier.height(4.dp))
+                                            
+                                            Text(
+                                                text = "Resume at: ${formatTime(playlistItem.resumePosition)}",
+                                                fontSize = 12.sp,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
+                                        }
+                                        
+                                        IconButton(
+                                            onClick = { removeFromPlaylist(playlistItem.videoId) }
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Default.Delete,
+                                                contentDescription = "Remove from Playlist",
+                                                tint = MaterialTheme.colorScheme.error
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
         
         // Section Status (only show if section mode is enabled)
