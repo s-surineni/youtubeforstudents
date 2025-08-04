@@ -523,18 +523,6 @@ fun YouTubePlayerScreen(
                             }
                         }
                         
-                        if (isSectionComplete) {
-                            Spacer(modifier = Modifier.height(8.dp))
-                            
-                            // Section completion indicator
-                            Text(
-                                text = "Section completed successfully!",
-                                fontSize = 12.sp,
-                                color = MaterialTheme.colorScheme.primary,
-                                fontWeight = FontWeight.Medium
-                            )
-                        }
-                        
                         // Essential controls - always show when section mode is enabled
                         Spacer(modifier = Modifier.height(8.dp))
                         
@@ -542,7 +530,7 @@ fun YouTubePlayerScreen(
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(16.dp),
+                                .padding(8.dp),
                             horizontalArrangement = Arrangement.SpaceEvenly
                         ) {
                             // Previous Section button
@@ -550,12 +538,12 @@ fun YouTubePlayerScreen(
                                 onClick = {
                                     webViewRef?.evaluateJavascript("window.goToPreviousSection();", null)
                                 },
-                                modifier = Modifier.weight(1f).padding(end = 8.dp)
+                                modifier = Modifier.weight(1f).padding(end = 4.dp)
                             ) {
                                 Icon(
                                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                                     contentDescription = "Previous Section",
-                                    modifier = Modifier.size(20.dp)
+                                    modifier = Modifier.size(18.dp)
                                 )
                             }
                             
@@ -564,12 +552,12 @@ fun YouTubePlayerScreen(
                                 onClick = {
                                     webViewRef?.evaluateJavascript("window.replayCurrentSection();", null)
                                 },
-                                modifier = Modifier.weight(1f).padding(horizontal = 4.dp)
+                                modifier = Modifier.weight(1f).padding(horizontal = 2.dp)
                             ) {
                                 Icon(
                                     imageVector = Icons.Filled.Refresh,
                                     contentDescription = "Replay Section",
-                                    modifier = Modifier.size(20.dp)
+                                    modifier = Modifier.size(18.dp)
                                 )
                             }
                             
@@ -578,34 +566,14 @@ fun YouTubePlayerScreen(
                                 onClick = {
                                     webViewRef?.evaluateJavascript("window.goToNextSection();", null)
                                 },
-                                modifier = Modifier.weight(1f).padding(start = 8.dp)
+                                modifier = Modifier.weight(1f).padding(start = 4.dp)
                             ) {
                                 Icon(
                                     imageVector = Icons.AutoMirrored.Filled.ArrowForward,
                                     contentDescription = "Next Section",
-                                    modifier = Modifier.size(20.dp)
+                                    modifier = Modifier.size(18.dp)
                                 )
                             }
-                        }
-                        
-                        Spacer(modifier = Modifier.height(4.dp))
-                        
-                        // Section info display
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Text(
-                                text = "Duration: ${sectionDurationSeconds}s",
-                                fontSize = 10.sp,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                            
-                            Text(
-                                text = "Use buttons to navigate",
-                                fontSize = 10.sp,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
                         }
                     }
                 }
